@@ -8,7 +8,22 @@ class Profiler extends Stackable {
     public $total = 0;
 }
 
-class WebWorker extends Worker {
+class WebWorker extends Worker
+{
+    /**
+     * @var SafeLog
+     */
+    public $logger;
+
+    /**
+     * @var Profiler
+     */
+    public $profiler;
+
+    /**
+     * @param Profiler $profiler
+     * @param SafeLog $logger
+     */
     public function __construct(Profiler $profiler, SafeLog $logger) {
         $this->profiler = $profiler;
         $this->logger = $logger;
@@ -20,12 +35,13 @@ class WebWorker extends Worker {
     {
 
     }
-
-    protected $logger;
-
-    protected $profiler;
 }
 
+/**
+ * Class VkFetchThread
+ *
+ * @property WebWorker $worker
+ */
 class VkFetchThread extends Thread {
     protected $start;
 
@@ -50,6 +66,11 @@ class VkFetchThread extends Thread {
     }
 }
 
+/**
+ * Class VkFetchThread
+ *
+ * @property WebWorker $worker
+ */
 class ProfilerThread extends Thread {
     public function run() {
         while (true) {
