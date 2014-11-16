@@ -21,7 +21,11 @@ class WebWorker extends Worker
      */
     public $profiler;
 
-    static public $pdo;
+    static public $pdo1;
+
+    static public $pdo2;
+
+    static public $pdo3;
 
     /**
      * @param Profiler $profiler
@@ -33,18 +37,31 @@ class WebWorker extends Worker
         $this->logger = $logger;
     }
 
-    public function run(){
-        self::$pdo = new PDO('mysql:host=localhost;dbname=vk_import', 'root', 'root', array(
+    public function run()
+    {
+        self::$pdo1 = new PDO('mysql:host=localhost;dbname=vk_import', 'root', 'root', array(
             PDO::ATTR_PERSISTENT => true
         ));
-        self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        self::$pdo->exec("SET CHARACTER SET utf8");
+        self::$pdo1->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        self::$pdo1->exec("SET CHARACTER SET utf8");
+
+        self::$pdo2 = new PDO('mysql:host=localhost;dbname=vk_import', 'root', 'root', array(
+            PDO::ATTR_PERSISTENT => true
+        ));
+        self::$pdo2->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        self::$pdo2->exec("SET CHARACTER SET utf8");
+
+        self::$pdo3 = new PDO('mysql:host=localhost;dbname=vk_import', 'root', 'root', array(
+            PDO::ATTR_PERSISTENT => true
+        ));
+        self::$pdo3->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        self::$pdo3->exec("SET CHARACTER SET utf8");
     }
 
     public function writeToDb(array $values)
     {
         foreach ($values as $row) {
-            $statement = self::$pdo->prepare('INSERT INTO `users` (`id`, `firstname`, `lastname`) VALUES (?, ?, ?);');
+            $statement = self::${"pdo" . rand(1,3)}->prepare('INSERT INTO `users` (`id`, `firstname`, `lastname`) VALUES (?, ?, ?);');
 
             $statement->execute(array(
                 $row->uid,
@@ -77,11 +94,22 @@ class VkFetchThread extends Thread
         $limit = 300;
         $interval = round($this->end / $limit);
 
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPGET, true);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HEADER, 0);
+
         for ($i = 0; $i < $interval; $i++) {
             $start = $i * $limit + 1;
             $end = ($i * $limit) + $limit;
 
-            $result = file_get_contents('https://api.vk.com/method/users.get?user_ids=' . implode(',', array_keys(array_fill($start, $limit, 1))));
+            curl_setopt($curl, CURLOPT_URL, 'https://api.vk.com/method/users.get?user_ids=' . implode(',', array_keys(array_fill($start, $limit, 1))));
+
+            if (!$result = curl_exec($curl)) {
+                throw new \Exception('Curl http Error');
+            }
+
             $this->worker->profiler->total += $limit;
 
             $users = json_decode($result);
@@ -102,7 +130,7 @@ class ProfilerThread extends Thread
     public function run()
     {
         while (true) {
-            usleep(100000);
+            usleep(10000);
             $this->worker->logger->log("Total count {$this->worker->profiler->total}");
         }
     }
@@ -122,7 +150,7 @@ class SafeLog extends Stackable
     }
 }
 
-const FetchVkWorkers = 16;
+const FetchVkWorkers = 128;
 
 $pool = new Pool(FetchVkWorkers + 1, 'WebWorker', [new Profiler(), new SafeLog()]);
 
@@ -133,3 +161,5 @@ for ($i = 0; $i < FetchVkWorkers; $i++) {
 $pool->submit(new ProfilerThread());
 
 $pool->shutdown();
+
+var_dump($pool->worker->profiler->total);
