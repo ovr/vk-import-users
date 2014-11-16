@@ -74,7 +74,7 @@ class VkFetchThread extends Thread {
 class ProfilerThread extends Thread {
     public function run() {
         while (true) {
-            usleep(1000);
+            usleep(100000);
             $this->worker->logger->log("Total count {$this->worker->profiler->total}");
         }
     }
