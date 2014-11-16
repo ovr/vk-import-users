@@ -150,10 +150,19 @@ class SafeLog extends Stackable
 
 const FetchVkWorkers = 128;
 
+/**
+ * @link https://vk.com/catalog.php
+ * @link https://vk.com/catalog.php?selection=277-87-66
+ * 277 876 632
+ */
+const LatestVkId = 277876632;
+
+$perThread = ceil(LatestVkId/FetchVkWorkers);
+
 $pool = new Pool(FetchVkWorkers + 1, 'WebWorker', [new Profiler(), new SafeLog()]);
 
 for ($i = 0; $i < FetchVkWorkers; $i++) {
-    $pool->submit(new VkFetchThread(($i * 100000000) + 1, ($i * 100000000) + 100000000));
+    $pool->submit(new VkFetchThread(($i * $perThread) + 1, ($i * $perThread) + $perThread));
 }
 
 $pool->submit(new ProfilerThread());
