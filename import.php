@@ -21,6 +21,8 @@ class WebWorker extends Worker
      */
     public $profiler;
 
+    static public $pdo;
+
     /**
      * @param Profiler $profiler
      * @param SafeLog $logger
@@ -31,16 +33,16 @@ class WebWorker extends Worker
         $this->logger = $logger;
     }
 
-    protected $connection;
+    public function run(){
+        self::$pdo = new PDO('mysql:host=localhost;dbname=vk_import', 'root', 'root');
+        self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        self::$pdo->exec("SET CHARACTER SET utf8");
+    }
 
     public function writeToDb(array $values)
     {
-        $connection = new PDO('mysql:host=localhost;dbname=vk_import', 'root', 'root');
-        $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $connection->exec("SET CHARACTER SET utf8");
-
         foreach ($values as $row) {
-            $statement = $connection->prepare('INSERT INTO `users` (`id`, `firstname`, `lastname`) VALUES (?, ?, ?);');
+            $statement = self::$pdo->prepare('INSERT INTO `users` (`id`, `firstname`, `lastname`) VALUES (?, ?, ?);');
 
             $statement->execute(array(
                 $row->uid,
