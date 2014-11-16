@@ -33,7 +33,19 @@ class WebWorker extends Worker
 
     public function writeToDb(array $values)
     {
+        $connection = new PDO('mysql:host=localhost;dbname=vk_import', 'root', 'root');
+        $connection->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+        $connection->exec("SET CHARACTER SET utf8");
 
+        foreach ($values as $row) {
+            $statement = $connection->prepare('INSERT INTO `users` (`id`, `firstname`, `lastname`) VALUES (?, ?, ?);');
+
+            $statement->execute(array(
+                $row->uid,
+                $row->first_name,
+                $row->last_name
+            ));
+        }
     }
 }
 
