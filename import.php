@@ -101,9 +101,7 @@ class VkFetchThread extends Thread
         curl_setopt($curl, CURLOPT_HEADER, 0);
 
         for ($i = 0; $i < $interval; $i++) {
-            $start = $i * $limit + 1;
-            $end = ($i * $limit) + $limit;
-
+            $start = $this->start + ($i * $limit);
             curl_setopt($curl, CURLOPT_URL, 'https://api.vk.com/method/users.get?user_ids=' . implode(',', array_keys(array_fill($start, $limit, 1))));
 
             if (!$result = curl_exec($curl)) {
