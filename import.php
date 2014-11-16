@@ -89,7 +89,7 @@ class ProfilerThread extends Thread
 
 
 class SafeLog extends Stackable {
-    protected function log($message, $args = []) {
+    public function log($message, $args = []) {
         $args = func_get_args();
 
         if (($message = array_shift($args))) {
