@@ -34,7 +34,9 @@ class WebWorker extends Worker
     }
 
     public function run(){
-        self::$pdo = new PDO('mysql:host=localhost;dbname=vk_import', 'root', 'root');
+        self::$pdo = new PDO('mysql:host=localhost;dbname=vk_import', 'root', 'root', array(
+            PDO::ATTR_PERSISTENT => true
+        ));
         self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         self::$pdo->exec("SET CHARACTER SET utf8");
     }
