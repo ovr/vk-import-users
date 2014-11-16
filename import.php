@@ -54,9 +54,15 @@ class VkFetchThread extends Thread {
     }
 
     public function run() {
-        for ($i = $this->start; $i < $this->end; $i++) {
-            $result = file_get_contents('https://api.vk.com/method/users.get?user_ids=1,2,' . $i);
-            $this->worker->profiler->total += 300;
+        $limit = 300;
+        $interval = round($this->end/$limit);
+
+        for ($i = 0; $i < $interval; $i++) {
+            $start = $i*$limit+1;
+            $end = ($i*$limit)+$limit;
+
+            $result = file_get_contents('https://api.vk.com/method/users.get?user_ids='.implode(',', array_keys(array_fill($start, $limit, 1))));
+            $this->worker->profiler->total += $limit;
 
             $users = json_decode($result);
             if ($users) {
@@ -71,7 +77,8 @@ class VkFetchThread extends Thread {
  *
  * @property WebWorker $worker
  */
-class ProfilerThread extends Thread {
+class ProfilerThread extends Thread
+{
     public function run() {
         while (true) {
             usleep(100000);
