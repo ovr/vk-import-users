@@ -1,6 +1,12 @@
 vk-import-users
 ===============
 
+To run the script:
+
+```bash
+php import.php
+```
+
 License
 -------
 
