@@ -61,12 +61,15 @@ class WebWorker extends Worker
     public function writeToDb(array $values)
     {
         foreach ($values as $row) {
-            $statement = self::${"pdo" . rand(1,3)}->prepare('INSERT INTO `users` (`id`, `firstname`, `lastname`) VALUES (?, ?, ?);');
+            $statement = self::${"pdo" . rand(1,3)}->prepare('INSERT INTO `users` (`id`, `firstname`, `lastname`, `countryId`, `cityId`, `sex`) VALUES (?,?,?,?,?,?);');
 
             $statement->execute(array(
                 $row->uid,
                 $row->first_name,
-                $row->last_name
+                $row->last_name,
+                isset($row->country) ? $row->country : null,
+                isset($row->city) ? $row->city : null,
+                isset($row->sex) ? $row->sex : $row->sex
             ));
         }
     }
@@ -102,7 +105,7 @@ class VkFetchThread extends Thread
 
         for ($i = 0; $i < $interval; $i++) {
             $start = $this->start + ($i * $limit);
-            curl_setopt($curl, CURLOPT_URL, 'https://api.vk.com/method/users.get?user_ids=' . implode(',', array_keys(array_fill($start, $limit, 1))));
+            curl_setopt($curl, CURLOPT_URL, 'https://api.vk.com/method/users.get?fields=sex,country,city&user_ids=' . implode(',', array_keys(array_fill($start, $limit, 1))));
 
             if (!$result = curl_exec($curl)) {
                 throw new \Exception('Curl http Error');
