@@ -1,0 +1,11 @@
+{
+    "name": "ovr/vk-import-users",
+    "authors": [
+        {
+            "name": "Patsura Dmitry",
+            "email": "zaets28rus@gmail.com"
+        }
+    ],
+    "require": {
+    }
+}
